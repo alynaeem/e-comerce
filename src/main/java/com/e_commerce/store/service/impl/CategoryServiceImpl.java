@@ -5,7 +5,6 @@ import com.e_commerce.store.mapper.CategoryMapper;
 import com.e_commerce.store.model.Category;
 import com.e_commerce.store.repository.CategoryRepository;
 import com.e_commerce.store.service.CategoryService;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +15,8 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository,
+                               CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
     }
@@ -37,10 +37,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDTO updateCategory(CategoryDTO categoryDTO) {
-        // Check if the category exists before updating
         Category existingCategory = categoryRepository.findById(categoryDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
-
 
         existingCategory.setName(categoryDTO.getName());
         existingCategory.setDescription(categoryDTO.getDescription());
@@ -51,15 +49,15 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Long id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+        if (!categoryRepository.existsById(id)) {
+            throw new IllegalArgumentException("Category not found");
+        }
         categoryRepository.deleteById(id);
     }
 
     @Override
     public List<CategoryDTO> getAllCategories() {
-        List<Category> categories = (List<Category>) categoryRepository.findAll();
-        return categories.stream()
+        return categoryRepository.findAll().stream()
                 .map(categoryMapper::categoryToCategoryDTO)
                 .toList();
     }

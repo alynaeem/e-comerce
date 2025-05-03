@@ -16,7 +16,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper) {
+    public ProductServiceImpl(ProductRepository productRepository,
+                              ProductMapper productMapper) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
     }
@@ -40,17 +41,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDTO updateProduct(ProductDTO productDTO) {
-        // Check if the product exists before updating it
         Product existingProduct = productRepository.findById(productDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        // Update the product fields (you can customize this if necessary)
         existingProduct.setName(productDTO.getName());
         existingProduct.setPrice(productDTO.getPrice());
         existingProduct.setDescription(productDTO.getDescription());
         existingProduct.setStockQuantity(productDTO.getStockQuantity());
 
-        // Save the updated product and return the DTO
         existingProduct = productRepository.save(existingProduct);
         return productMapper.productToProductDTO(existingProduct);
     }
@@ -58,15 +56,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        if (!productRepository.existsById(id)) {
+            throw new IllegalArgumentException("Product not found");
+        }
         productRepository.deleteById(id);
     }
 
     @Override
     public List<ProductDTO> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        return products.stream()
+        return productRepository.findAll().stream()
                 .map(productMapper::productToProductDTO)
                 .toList();
     }
