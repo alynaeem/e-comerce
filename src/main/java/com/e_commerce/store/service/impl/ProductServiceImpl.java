@@ -6,8 +6,10 @@ import com.e_commerce.store.model.Product;
 import com.e_commerce.store.repository.ProductRepository;
 import com.e_commerce.store.service.ProductService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -20,6 +22,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductDTO createProduct(ProductDTO productDTO) {
         Product product = productMapper.productDTOToProduct(productDTO);
         product = productRepository.save(product);
@@ -27,22 +30,34 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductDTO getProductById(Long id) {
-        Product product = productRepository.findById(id).
-                orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         return productMapper.productToProductDTO(product);
     }
 
     @Override
+    @Transactional
     public ProductDTO updateProduct(ProductDTO productDTO) {
-        Product product = productMapper.productDTOToProduct(productDTO);
-        product = productRepository.save(product);
-        return productMapper.productToProductDTO(product);
+        // Check if the product exists before updating it
+        Product existingProduct = productRepository.findById(productDTO.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+        // Update the product fields (you can customize this if necessary)
+        existingProduct.setName(productDTO.getName());
+        existingProduct.setPrice(productDTO.getPrice());
+        existingProduct.setDescription(productDTO.getDescription());
+        existingProduct.setStockQuantity(productDTO.getStockQuantity());
+
+        // Save the updated product and return the DTO
+        existingProduct = productRepository.save(existingProduct);
+        return productMapper.productToProductDTO(existingProduct);
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long id) {
-
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         productRepository.deleteById(id);
@@ -51,7 +66,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDTO> getAllProducts() {
         List<Product> products = productRepository.findAll();
-        return products.stream().
-                map(productMapper::productToProductDTO).toList();
+        return products.stream()
+                .map(productMapper::productToProductDTO)
+                .toList();
     }
 }
