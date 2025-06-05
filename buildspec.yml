@@ -12,14 +12,14 @@ phases:
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
 
   build:
-    commands:
-      - echo Build started on `date`
-      - echo Running Maven build...
-      - mvn clean install
-      - echo Building the Docker image...
-      - docker build -t $REPOSITORY_URI:latest -f store/Dockerfile store/
-      - echo Tagging the Docker image...
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      commands:
+        - echo Build started on `date`
+        - echo Running Maven build...
+        - mvn clean install
+        - echo Building the Docker image...
+        - docker build -t $REPOSITORY_URI:latest -f Dockerfile .
+        - echo Tagging the Docker image...
+        - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
